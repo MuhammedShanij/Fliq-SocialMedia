@@ -54,7 +54,7 @@ const formattedDate = `${date}/${month}/${year}`;
             src={
               person.profilePicture
                 ? publicFolder + person.profilePicture
-                : publicFolder + "defaultProfile.png"
+                : publicFolder + "defaultProfilee.png"
             }
             alt="profile"
             className="postImage"

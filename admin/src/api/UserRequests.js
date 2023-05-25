@@ -1,6 +1,4 @@
-import axios from "axios";
-
-const API = axios.create({ baseURL: "http://localhost:5000" });
+import API from '../utils/axios.js'
 
 API.interceptors.request.use((req) => {
     if (localStorage.getItem('profile')) {
@@ -9,6 +7,6 @@ API.interceptors.request.use((req) => {
   
     return req;
   });
-// export const getUser = (userId) => API.get(`/user/${userId}`);
+  
 export const blockUser = (data)=> API.put(`/admin/users/block`, data)
 export const getAllUser = ()=> API.get('/admin/users')

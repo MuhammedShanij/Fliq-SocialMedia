@@ -1,6 +1,7 @@
 .LogoSearch {
   display: flex;
   gap: 0.75rem;
+  padding: 30px;
 }
 .Search {
   display: flex;

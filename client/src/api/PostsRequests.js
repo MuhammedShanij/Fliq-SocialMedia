@@ -1,7 +1,5 @@
-import axios from 'axios'
+import API from '../utils/axios.js'
 
-
-const API = axios.create({ baseURL: 'http://localhost:5000' });
 
 API.interceptors.request.use((req) => {
     if (localStorage.getItem('profile')) {
@@ -13,3 +11,6 @@ API.interceptors.request.use((req) => {
 
 export const getTimelinePosts= (id)=> API.get(`/posts/${id}/timeline`);
 export const likePost=(id, userId)=>API.put(`posts/${id}/like`, {userId: userId})
+export const reportPost=(data)=>API.patch('posts/report', data)
+export const deletePost=(id,userId)=>{API.delete(`posts/${id}`, { data: { userId: userId } })}
+

@@ -9,6 +9,7 @@ import { likePost } from "../../api/PostsRequests";
 import { useSelector, useDispatch } from "react-redux";
 import { uploadComment } from "../../actions/UploadAction";
 import { UilEllipsisV } from '@iconscout/react-unicons';
+import OptionsModal from "../OptionsModal/OptionsModal";
 
 
 const Post = ({ data }) => {
@@ -18,6 +19,9 @@ const Post = ({ data }) => {
   const { user } = useSelector((state) => state.authReducer.authData);
 
   const [modalOpened, setModalOpened] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  
+  const iconRef=useRef(null);
 
   const [liked, setLiked] = useState(data.likes.includes(user._id));
   const [likes, setLikes] = useState(data.likes.length);
@@ -100,7 +104,7 @@ const Post = ({ data }) => {
             src={
               data.userInfo.profilePicture
                 ? publicFolder + data.userInfo.profilePicture
-                : publicFolder + "defaultProfile.png"
+                : publicFolder + "defaultProfilee.png"
             }
             alt="profile"
             className="followerImage"
@@ -110,8 +114,15 @@ const Post = ({ data }) => {
             <span style={{color:"gray",fontSize:"0.7rem"}}>{timeDifference} ago</span>
           </div>
         </div>
-        <UilEllipsisV size="20"/>
-        
+            <div className="options" ref={iconRef} onClick={() => setModalOpen(true)}>
+              <UilEllipsisV size="20"/>
+            </div>
+            <OptionsModal 
+            modalOpen={modalOpen}
+            setModalOpen={setModalOpen}
+            iconRef={iconRef}
+            postId={data._id}
+            userId={data.userId}/>
 
       </div>
       

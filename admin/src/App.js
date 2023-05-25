@@ -12,6 +12,7 @@ import Posts from "./Pages/Posts/Posts";
 import Users from "./Pages/Users/Users";
 import Sidebar from "./components/Sidebar";
 import { useSelector } from "react-redux";
+import PostsReports from "./Pages/PostsReport/PostsReports";
 
 function App() {
   return (
@@ -54,6 +55,10 @@ function AppContent() {
         <Route
           path="/users"
           element={user ? <Users /> : <Navigate to="../" />}
+        />
+        <Route
+          path="/postsReport"
+          element={user ? <PostsReports /> : <Navigate to="../" />}
         />
       </Routes>
     </div>

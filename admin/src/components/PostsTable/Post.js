@@ -36,7 +36,7 @@ const Post = ({data,index}) => {
             src={
               data.image
                 ? publicFolder + data.image
-                : publicFolder + "defaultProfile.png"
+                : publicFolder + "defaultProfilee.png"
             }
             alt="post"
             className="postImage"
@@ -46,7 +46,7 @@ const Post = ({data,index}) => {
       <TableCell align="left">{data.likes.length}</TableCell>
       <TableCell align="left">
         <span className="status" 
-        style={makeStyle(data.isReported)}
+        style={makeStyle(true)}
         >
         {data.isReported ? "Reported" : "Active"}
         </span>

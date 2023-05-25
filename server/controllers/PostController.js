@@ -1,7 +1,7 @@
 import PostModel from "../models/postModel.js";
 import UserModel from "../models/userModel.js";
 import CommentModel from "../models/commentModel.js";
-
+import ReportModel from "../models/postsReportModel.js";
 import mongoose from "mongoose";
 
 // creating a post
@@ -66,10 +66,12 @@ export const updatePost = async (req, res) => {
 export const deletePost = async (req, res) => {
   const id = req.params.id;
   const { userId } = req.body;
+  console.log("delete",id,req.body)
 
   try {
     const post = await PostModel.findById(id);
     if (post.userId === userId) {
+      console.log("here")
       await post.deleteOne();
       res.status(200).json("Post deleted.");
     } else {
@@ -407,6 +409,20 @@ export const addComment = async (req, res) => {
     );
   } catch (error) {
     console.log(error)
+    res.status(500).json(error);
+  }
+};
+
+//report post
+export const reportPost = async (req, res) => {
+  console.log("req.body",req.body)
+  const newReport = new ReportModel(req.body);
+
+  try {
+    // await PostModel.findByIdAndUpdate(req.body.postId,{isReported:true},{new:true})
+    await newReport.save();
+    res.status(200).json(post);
+  } catch (error) {
     res.status(500).json(error);
   }
 };

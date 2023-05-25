@@ -1,7 +1,5 @@
-import axios from 'axios'
+import API from '../utils/axios.js'
 
-
-const API = axios.create({ baseURL: 'http://localhost:5000' });
 
 API.interceptors.request.use((req) => {
     if (localStorage.getItem('profile')) {
@@ -12,3 +10,4 @@ API.interceptors.request.use((req) => {
   });
 
 export const getTimelinePosts= ()=> API.get(`/admin/posts`);
+export const getReportedPosts= ()=> API.get(`/admin/postsReport`);

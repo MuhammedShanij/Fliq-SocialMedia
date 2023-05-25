@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import UserModel from "../models/userModel.js";
 import PostModel from "../models/postModel.js";
+import postsReportModel from "../models/postsReportModel.js";
 
 //admin login
 export const loginAdmin = async (req, res) => {
@@ -82,7 +83,7 @@ export const getAllPosts = async (req, res) => {
           likes: 1,
           image: 1,
           createdAt: 1,
-          isReported:1,
+          // isReported:1,
           "userInfo.username": 1,
           "userInfo.profilePicture": 1,
         },
@@ -91,6 +92,61 @@ export const getAllPosts = async (req, res) => {
     console.log("posts",posts)
     res.status(200).json(
       posts.sort((a, b) => {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      })
+    );
+  } catch (error) {
+    res.status(500).json(error);
+    console.log(error);
+  }
+};
+
+export const getAllReportedPost = async (req, res) => {
+  try {
+    const reportedPosts = await postsReportModel.aggregate([
+      {
+        $addFields: {
+          userId: { $toObjectId: "$userId" },
+          postId: { $toObjectId: "$postId" },
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "userId",
+          foreignField: "_id",
+          as: "userInfo",
+        },
+      },
+      {
+        $unwind: "$userInfo",
+      },
+      {
+        $lookup: {
+          from: "posts",
+          localField: "postId",
+          foreignField: "_id",
+          as: "postInfo",
+        },
+      },
+      {
+        $unwind: "$postInfo",
+      },
+      {
+        $project: {
+          _id: 1,
+          userId: 1,
+          postId:1,
+          reason:1,
+          createdAt:1,
+          "userInfo":1,
+          "postInfo":1
+        },
+      },
+    ]);
+    console.log("data",reportedPosts)
+    res.status(200).json(
+      reportedPosts.sort((a, b) => {
         return new Date(b.createdAt) - new Date(a.createdAt);
       })
     );

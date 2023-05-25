@@ -1,0 +1,14 @@
+.options{
+   text-align: center;
+   font-weight: bold;
+   cursor: pointer;
+   padding: 0;
+}
+.options>div{
+    margin-bottom: 14px;
+}
+.reportOptions{
+    text-align: center;
+    padding: 5px;
+    cursor: pointer;
+}

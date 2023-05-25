@@ -39,6 +39,9 @@ export default function BasicTable() {
   return (
     <div className="Table">
       {/* <h3>All Posts</h3> */}
+      {loading
+              ? "Fetching posts..."
+              :""}
       <TableContainer
         component={Paper}
         style={{ boxShadow: "0px 13px 20px 0px #80808029", maxHeight: "500px" }}
@@ -55,9 +58,8 @@ export default function BasicTable() {
             </TableRow>
           </TableHead>
           <TableBody style={{ color: "white" }}>
-            {loading
-              ? "Fetching posts..."
-              : (rowsPerPage > 0
+         
+            { (rowsPerPage > 0
                   ? posts.slice(
                       page * rowsPerPage,
                       page * rowsPerPage + rowsPerPage

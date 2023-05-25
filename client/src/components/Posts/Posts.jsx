@@ -6,17 +6,17 @@ import "./Posts.css";
 import { useParams } from "react-router-dom";
 
 const Posts = () => {
-  const params = useParams()
+  const params = useParams();
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.authReducer.authData);
   let { posts, loading } = useSelector((state) => state.postReducer);
   useEffect(() => {
     dispatch(getTimelinePosts(user._id));
   }, []);
-  if(!posts) return 'No Posts';
-  if(params.id) posts = posts.filter((post)=> post.userId===params.id)
-  else posts = posts.filter((post)=> !post.isReported)
-  console.log("postssss",posts)
+  if (!posts) return "No Posts";
+  if (params.id) posts = posts.filter((post) => post.userId === params.id);
+  // else posts = posts.filter((post) => !post.isReported);
+  console.log("postssss", posts);
   return (
     <div className="Posts">
       {loading

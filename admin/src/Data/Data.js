@@ -38,8 +38,8 @@ export const SidebarData = [
   },
   {
     icon: UilClipboardAlt,
-    heading: 'Reports',
-    path:"/reports"
+    heading: 'Reported Posts',
+    path:"/postsReport"
 
   },
   
@@ -119,3 +119,5 @@ export const UpdatesData = [
     time: "2 hours ago",
   },
 ];
+
+
