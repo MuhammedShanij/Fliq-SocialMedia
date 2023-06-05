@@ -19,8 +19,17 @@ export default function BasicTable() {
 
   useEffect(() => {
     const fetchPersons = async () => {
-      const { data } = await getAllUser();
+      console.log("here")
+      try {
+        const { data } = await getAllUser();
+        console.log(data,"data")
       setPersons(data);
+
+      } catch (error) {
+        console.log(error.response.data.message)
+        
+      }
+     
     };
     fetchPersons();
   }, []);

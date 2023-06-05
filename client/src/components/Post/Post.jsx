@@ -121,7 +121,7 @@ const Post = ({ data }) => {
             modalOpen={modalOpen}
             setModalOpen={setModalOpen}
             iconRef={iconRef}
-            postId={data._id}
+            post={data}
             userId={data.userId}/>
 
       </div>

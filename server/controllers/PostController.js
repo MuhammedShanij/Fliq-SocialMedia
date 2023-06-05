@@ -66,14 +66,14 @@ export const updatePost = async (req, res) => {
 export const deletePost = async (req, res) => {
   const id = req.params.id;
   const { userId } = req.body;
-  console.log("delete",id,req.body)
+
 
   try {
     const post = await PostModel.findById(id);
     if (post.userId === userId) {
-      console.log("here")
+     
       await post.deleteOne();
-      res.status(200).json("Post deleted.");
+      res.status(200).json(post);
     } else {
       res.status(403).json("Action forbidden");
     }
@@ -421,7 +421,7 @@ export const reportPost = async (req, res) => {
   try {
     // await PostModel.findByIdAndUpdate(req.body.postId,{isReported:true},{new:true})
     await newReport.save();
-    res.status(200).json(post);
+    res.status(200).json("Reported");
   } catch (error) {
     res.status(500).json(error);
   }

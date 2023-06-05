@@ -33,7 +33,7 @@ const InfoCard = () => {
       }
     };
     fetchProfileUser();
-  }, [user]);
+  }, [user,params]);
 
   return (
     <div className="InfoCard">

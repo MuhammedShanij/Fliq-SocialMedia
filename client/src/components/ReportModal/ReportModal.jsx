@@ -3,13 +3,14 @@ import { reportData } from "../../utils/Constants.js";
 import { useSelector } from "react-redux";
 import { reportPost } from "../../api/PostsRequests.js";
 
-function ReportModal({ reportModalOpened, setReportModalOpened,postId }) {
+function ReportModal({ reportModalOpened, setReportModalOpened,post }) {
   const { user } = useSelector((state) => state.authReducer.authData);
   const theme = useMantineTheme();
   const handleReportData = (data)=>{
     const reportData={
-      postId:postId,
+      postId:post._id,
       userId:user._id,
+      postUserId:post.userId,
       reason:data
     }
     console.log(reportData)

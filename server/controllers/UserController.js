@@ -35,6 +35,21 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
+// Get all users dynamically
+
+export const getAllUsersDynamically=async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+
+  try {
+    const skip = (page - 1) * limit;
+    const users = await UserModel.find().skip(skip).limit(limit);
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: 'An error occurred while fetching users.' });
+  }
+}
+
 // udpate a user
 
 export const updateUser = async (req, res) => {

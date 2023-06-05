@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link} from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { followUser, unfollowUser } from "../../actions/UserAction";
 const User = ({ person }) => {
@@ -28,7 +29,13 @@ const User = ({ person }) => {
           className="followerImage"
         />
         <div className="name">
-          <span>{person.username}</span>
+        <Link
+            to={`/profile/${person._id}`}
+            style={{ textDecoration: "none", color: "inherit" }}
+          >
+            {person.username}
+          </Link>
+          {/* <span></span> */}
           {/* <span>@{person.username}</span> */}
         </div>
       </div>

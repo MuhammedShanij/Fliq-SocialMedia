@@ -27,6 +27,7 @@ const Post = ({data,index}) => {
     const date = createdAt.getDate();
     const month = createdAt.getMonth() + 1; // Months are zero-based, so add 1
     const year = createdAt.getFullYear();
+    console.log(data,"reports")
     
     const formattedDate = `${date}/${month}/${year}`;
     const handleClick=()=>{
@@ -53,7 +54,7 @@ const Post = ({data,index}) => {
         <ReportedPostModal 
       reportModalOpened={reportedPostInfoOpen}
       setReportModalOpened={setReportedPostInfoOpened}
-      data={data.postInfo}/>
+      data={data.postUserInfo} />
         </TableCell>
       
       <TableCell align="left">

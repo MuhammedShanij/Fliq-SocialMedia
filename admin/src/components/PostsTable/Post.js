@@ -43,7 +43,7 @@ const Post = ({data,index}) => {
           />
       </TableCell>
       <TableCell align="left">{data.desc}</TableCell>
-      <TableCell align="left">{data.likes.length}</TableCell>
+      <TableCell align="left">{data.likes?.length}</TableCell>
       <TableCell align="left">
         <span className="status" 
         style={makeStyle(true)}

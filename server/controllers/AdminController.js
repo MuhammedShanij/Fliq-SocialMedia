@@ -17,7 +17,7 @@ export const loginAdmin = async (req, res) => {
         const token = jwt.sign(
           { username: username},
           process.env.JWTKEY,
-          { expiresIn: "1h" }
+          { expiresIn: "60s" }
         );
         res.status(200).json({ token });
       }
@@ -25,6 +25,7 @@ export const loginAdmin = async (req, res) => {
       res.status(404).json("Admin not found");
     }
   } catch (err) {
+    console.log(err)
     res.status(500).json(err);
   }
 };
@@ -108,6 +109,7 @@ export const getAllReportedPost = async (req, res) => {
         $addFields: {
           userId: { $toObjectId: "$userId" },
           postId: { $toObjectId: "$postId" },
+          postUserId: { $toObjectId: "$postUserId" },
         },
       },
       {
@@ -133,6 +135,17 @@ export const getAllReportedPost = async (req, res) => {
         $unwind: "$postInfo",
       },
       {
+        $lookup: {
+          from: "users",
+          localField: "postUserId",
+          foreignField: "_id",
+          as: "postUserInfo",
+        },
+      },
+      {
+        $unwind: "$postUserInfo",
+      },
+      {
         $project: {
           _id: 1,
           userId: 1,
@@ -140,7 +153,8 @@ export const getAllReportedPost = async (req, res) => {
           reason:1,
           createdAt:1,
           "userInfo":1,
-          "postInfo":1
+          "postInfo":1,
+          "postUserInfo":1
         },
       },
     ]);

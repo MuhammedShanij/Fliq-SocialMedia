@@ -13,7 +13,9 @@ const authMiddleWare = async (req, res, next) => {
     }
     next();
   } catch (error) {
-    console.log(error);
+    console.log(error,"token expiredd");
+    res.status(404).json({ message:"token expired" });
+
   }
 };
 

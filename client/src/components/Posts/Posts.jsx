@@ -16,7 +16,6 @@ const Posts = () => {
   if (!posts) return "No Posts";
   if (params.id) posts = posts.filter((post) => post.userId === params.id);
   // else posts = posts.filter((post) => !post.isReported);
-  console.log("postssss", posts);
   return (
     <div className="Posts">
       {loading

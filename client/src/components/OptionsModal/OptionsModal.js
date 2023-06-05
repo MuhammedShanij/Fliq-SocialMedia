@@ -1,12 +1,16 @@
 import { Modal, useMantineTheme } from "@mantine/core";
+import Swal from 'sweetalert2';
 import './OptionsModal.css'
 import { useState } from "react";
-import { useSelector } from "react-redux";
+import { useSelector,useDispatch } from "react-redux";
 import ReportModal from "../ReportModal/ReportModal.jsx";
-import { deletePost } from "../../api/PostsRequests.js";
+import { deletePost} from "../../actions/PostsAction";
 
 
-function OptionsModal({ modalOpen, setModalOpen, iconRef,postId,userId }) {
+
+function OptionsModal({ modalOpen, setModalOpen, iconRef,post,userId }) {
+  const dispatch = useDispatch();
+
   const theme = useMantineTheme();
   const [reportModalOpened,setReportModalOpened]=useState(false)
   const { user } = useSelector((state) => state.authReducer.authData);
@@ -20,9 +24,23 @@ function OptionsModal({ modalOpen, setModalOpen, iconRef,postId,userId }) {
    setReportModalOpened(true); // Open the report modal
   };
 
-  const handlePostDeletion = () => {
-    deletePost(postId,user._id);
-    setModalOpen(false);
+  const handlePostDeletion = async() => {
+    Swal.fire({
+      title: 'Are you sure?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'No, cancel',
+    }).then(result => {
+      if (result.isConfirmed) {
+        dispatch(deletePost(post._id,user._id));
+        setModalOpen(false);
+        Swal.fire('Deleted!', 'The item has been deleted.', 'success');
+      }
+    });
+    
+ 
+
   };
 
   return (
@@ -62,7 +80,7 @@ function OptionsModal({ modalOpen, setModalOpen, iconRef,postId,userId }) {
         <ReportModal
         reportModalOpened={reportModalOpened}
         setReportModalOpened={setReportModalOpened}
-        postId={postId}/>
+        post={post}/>
         </div>
         )}
       </div>
