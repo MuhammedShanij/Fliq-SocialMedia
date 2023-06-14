@@ -21,3 +21,10 @@ gap:1rem;
     display: flex;
     gap: 10px;
 }
+.singleComment{
+    display: flex;
+    
+}
+.singleComment>div:last-child {
+    margin-left: 100px  ;
+}

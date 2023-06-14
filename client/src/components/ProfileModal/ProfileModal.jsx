@@ -4,6 +4,8 @@ import "./ProfileModal.css";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { uploadImage } from "../../actions/UploadAction";
+import * as UploadApi from "../../api/UploadRequest";
+
 import { updateUser } from "../../actions/UserAction";
 
 const ProfileModal = ({ modalOpened, setModalOpened, data }) => {
@@ -30,7 +32,7 @@ const ProfileModal = ({ modalOpened, setModalOpened, data }) => {
   };
 
   // form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async(e) => {
     e.preventDefault();
     let UserData = formData;
     if (profileImage) {
@@ -38,9 +40,11 @@ const ProfileModal = ({ modalOpened, setModalOpened, data }) => {
       const fileName = Date.now() + profileImage.name;
       data.append("name", fileName);
       data.append("file", profileImage);
-      UserData.profilePicture = fileName;
       try {
-        dispatch(uploadImage(data));
+        // dispatch(uploadImage(data));
+    const ImageUrl=await UploadApi.uploadImage(data);
+    UserData.profilePicture = ImageUrl.data;
+    
       } catch (err) {
         console.log(err);
       }
@@ -52,7 +56,9 @@ const ProfileModal = ({ modalOpened, setModalOpened, data }) => {
       data.append("file", coverImage);
       UserData.coverPicture = fileName;
       try {
-        dispatch(uploadImage(data));
+        // dispatch(uploadImage(data));
+        const ImageUrl=await UploadApi.uploadImage(data);
+    UserData.coverPicture = ImageUrl.data;
       } catch (err) {
         console.log(err);
       }

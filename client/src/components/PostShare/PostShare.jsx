@@ -7,24 +7,55 @@ import { UilSchedule } from "@iconscout/react-unicons";
 import { UilTimes } from "@iconscout/react-unicons";
 import { useDispatch, useSelector } from "react-redux";
 import { uploadImage, uploadPost } from "../../actions/UploadAction";
+import * as UploadApi from "../../api/UploadRequest";
+
+import Swal from "sweetalert2";
 
 const PostShare = () => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.authReducer.authData);
   const loading = useSelector((state) => state.postReducer.uploading);
   const [image, setImage] = useState(null);
+  const [video, setVideo] = useState(null);
   const desc = useRef();
   const serverPublic = process.env.REACT_APP_PUBLIC_FOLDER;
+
+  // handle Video Change
+  const onVideoChange = (event) => {
+    const file = event.target.files[0];
+    setVideo(file);
+  };
 
   // handle Image Change
   const onImageChange = (event) => {
     if (event.target.files && event.target.files[0]) {
       let img = event.target.files[0];
-      setImage(img);
+      // Add image validation here
+      if (validateImage(img)) {
+        setImage(img);
+      } else {
+        // Show an error message or perform any other action for invalid image
+        Swal.fire({
+          icon: "error",
+          title: "Invalid Image",
+          text: "Please select a valid image file (JPEG, PNG, or GIF).",
+        });
+      }
     }
   };
 
+  // Image validation function
+  const validateImage = (img) => {
+    const allowedTypes = ["image/jpeg", "image/png", "image/gif"];
+    if (allowedTypes.includes(img.type)) {
+      return true;
+    }
+    return false;
+  };
+
   const imageRef = useRef();
+  const videoRef = useRef();
+
 
   // handle post upload
   const handleUpload = async (e) => {
@@ -42,10 +73,13 @@ const PostShare = () => {
       const fileName = Date.now() + image.name;
       data.append("name", fileName);
       data.append("file", image);
-      newPost.image = fileName;
       console.log(newPost);
       try {
-        dispatch(uploadImage(data));
+        // dispatch(uploadImage(data));
+    const ImageUrl=await UploadApi.uploadImage(data);
+    newPost.image = ImageUrl.data;
+
+console.log(ImageUrl);
       } catch (err) {
         console.log(err);
       }
@@ -64,7 +98,7 @@ const PostShare = () => {
       <img
         src={
           user.profilePicture
-            ? serverPublic + user.profilePicture
+            ?  user.profilePicture
             : serverPublic + "defaultProfilee.png"
         }
         alt="Profile"
@@ -86,7 +120,8 @@ const PostShare = () => {
             Photo
           </div>
 
-          <div className="option" style={{ color: "var(--video)" }}>
+          <div className="option" style={{ color: "var(--video)" }}
+          onClick={() => videoRef.current.click()}>
             <UilPlayCircle />
             Video
           </div>
@@ -109,6 +144,9 @@ const PostShare = () => {
           <div style={{ display: "none" }}>
             <input type="file" ref={imageRef} onChange={onImageChange} />
           </div>
+          <div style={{ display: "none" }}>
+            <input type="file" ref={videoRef} accept="video/*" onChange={onVideoChange} />
+          </div>
         </div>
 
         {image && (
@@ -117,6 +155,14 @@ const PostShare = () => {
             <img src={URL.createObjectURL(image)} alt="preview" />
           </div>
         )}
+
+      {video &&( 
+      <div className="previewImage">
+      <UilTimes onClick={() => setVideo(null)} />
+      <video src={URL.createObjectURL(video)} controls />
+      </div>
+      )}
+
       </div>
     </div>
   );

@@ -8,14 +8,26 @@ import { useParams } from "react-router-dom";
 const Posts = () => {
   const params = useParams();
   const dispatch = useDispatch();
+  
   const { user } = useSelector((state) => state.authReducer.authData);
   let { posts, loading } = useSelector((state) => state.postReducer);
+
   useEffect(() => {
     dispatch(getTimelinePosts(user._id));
   }, []);
-  if (!posts) return "No Posts";
+  posts = posts.filter((post) => post.status);
+
   if (params.id) posts = posts.filter((post) => post.userId === params.id);
   // else posts = posts.filter((post) => !post.isReported);
+  
+  if (posts.length === 0) {
+    return (
+      <div className="Posts">
+        <div className="no-posts-message">No Posts</div>
+      </div>
+    );
+  }
+
   return (
     <div className="Posts">
       {loading

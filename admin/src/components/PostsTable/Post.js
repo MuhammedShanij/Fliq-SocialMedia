@@ -46,9 +46,9 @@ const Post = ({data,index}) => {
       <TableCell align="left">{data.likes?.length}</TableCell>
       <TableCell align="left">
         <span className="status" 
-        style={makeStyle(true)}
+        style={makeStyle(!data.status)}
         >
-        {data.isReported ? "Reported" : "Active"}
+        {data.status ? "Active" : "Reported"}
         </span>
       </TableCell>
       

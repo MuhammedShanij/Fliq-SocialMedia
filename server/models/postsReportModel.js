@@ -1,12 +1,11 @@
 import mongoose from "mongoose";
-var ObjectId=mongoose.ObjectId
+var ObjectId = mongoose.ObjectId;
 
 const postsReportSchema = mongoose.Schema(
   {
-    userId: { type:ObjectId , required: true },
     postId: { type: ObjectId, required: true },
-    postUserId : {type: ObjectId, required: true },
-    reason: {type: String, required : true}
+    postUserId: { type: ObjectId, required: true },
+    reports: [{ userId: { type: ObjectId }, reason: { type: String } }],
   },
   {
     timestamps: true,
@@ -16,5 +15,3 @@ const postsReportSchema = mongoose.Schema(
 var postsReportModel = mongoose.model("reports", postsReportSchema);
 
 export default postsReportModel;
-
-

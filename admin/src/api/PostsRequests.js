@@ -11,3 +11,5 @@ API.interceptors.request.use((req) => {
 
 export const getTimelinePosts= ()=> API.get(`/admin/posts`);
 export const getReportedPosts= ()=> API.get(`/admin/postsReport`);
+export const blockPost= (id,data)=> API.patch(`/admin/${id}`,data);
+

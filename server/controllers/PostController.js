@@ -4,6 +4,9 @@ import CommentModel from "../models/commentModel.js";
 import ReportModel from "../models/postsReportModel.js";
 import mongoose from "mongoose";
 
+
+
+
 // creating a post
 
 export const createPost = async (req, res) => {
@@ -25,8 +28,7 @@ export const createPost = async (req, res) => {
     });
     post.comments = [];
 
-    console.log(post);
-
+   
     res.status(200).json(post);
   } catch (error) {
     res.status(500).json(error);
@@ -40,6 +42,7 @@ export const getPost = async (req, res) => {
 
   try {
     const post = await PostModel.findById(id);
+   
     res.status(200).json(post);
   } catch (error) {
     res.status(500).json(error);
@@ -50,6 +53,7 @@ export const getPost = async (req, res) => {
 export const updatePost = async (req, res) => {
   const postId = req.params.id;
   const { userId } = req.body;
+  console.log("updatePost", req.body);
 
   try {
     const post = await PostModel.findById(postId);
@@ -59,7 +63,9 @@ export const updatePost = async (req, res) => {
     } else {
       res.status(403).json("Authentication failed");
     }
-  } catch (error) {}
+  } catch (error) {
+    res.status(500).json(error);
+  }
 };
 
 // delete a post
@@ -67,13 +73,115 @@ export const deletePost = async (req, res) => {
   const id = req.params.id;
   const { userId } = req.body;
 
-
   try {
     const post = await PostModel.findById(id);
     if (post.userId === userId) {
-     
       await post.deleteOne();
       res.status(200).json(post);
+    } else {
+      res.status(403).json("Action forbidden");
+    }
+  } catch (error) {
+    res.status(500).json(error);
+  }
+};
+
+export const deleteComment = async (req, res) => {
+  const id = req.params.id;
+  const { userId } = req.body;
+  try {
+    const comment = await CommentModel.findById(id);
+    if (comment.userId.equals(mongoose.Types.ObjectId(userId))) {
+      await comment.deleteOne();
+
+      const user = await UserModel.findById(userId);
+      const followingIds = user.following;
+      followingIds.push(userId);
+
+      const postsWithComments = await PostModel.aggregate([
+        {
+          $addFields: {
+            userId: { $toObjectId: "$userId" },
+          },
+        },
+        {
+          $match: {
+            userId: {
+              $in: followingIds.map((id) => mongoose.Types.ObjectId(id)),
+            },
+          },
+        },
+        {
+          $lookup: {
+            from: "users",
+            localField: "userId",
+            foreignField: "_id",
+            as: "userInfo",
+          },
+        },
+        {
+          $unwind: "$userInfo",
+        },
+        {
+          $lookup: {
+            from: "comments",
+            localField: "_id",
+            foreignField: "postId",
+            as: "comments",
+          },
+        },
+        {
+          $lookup: {
+            from: "users",
+            localField: "comments.userId",
+            foreignField: "_id",
+            as: "commentUsers",
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            userId: 1,
+            desc: 1,
+            likes: 1,
+            image: 1,
+            status: 1,
+            createdAt: 1,
+            "userInfo.username": 1,
+            "userInfo.profilePicture": 1,
+            comments: {
+              $map: {
+                input: "$comments",
+                as: "comment",
+                in: {
+                  $mergeObjects: [
+                    "$$comment",
+                    {
+                      $arrayElemAt: [
+                        {
+                          $filter: {
+                            input: "$commentUsers",
+                            cond: { $eq: ["$$this._id", "$$comment.userId"] },
+                          },
+                        },
+                        0,
+                      ],
+                    },
+                    { _id: "$$comment._id" },
+                  ],
+                },
+              },
+            },
+          },
+        },
+      ]);
+
+      const allPosts = postsWithComments.sort((a, b) => {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      });
+
+   
+      res.status(200).json(allPosts);
     } else {
       res.status(403).json("Action forbidden");
     }
@@ -104,127 +212,9 @@ export const likePost = async (req, res) => {
 export const getTimelinePosts = async (req, res) => {
   const userId = req.params.id;
   try {
-    // const currentUserPosts = await PostModel.find({ userId: userId });
-
-    // let followingPosts = await UserModel.aggregate([
-    //   {
-    //     $match: {
-    //       _id: new mongoose.Types.ObjectId(userId),
-    //     },
-    //   },
-    //   {
-    //     $lookup: {
-    //       from: "posts",
-    //       localField: "following",
-    //       foreignField: "userId",
-    //       as: "followingPosts",
-    //     },
-    //   },
-    //   {
-    //     $project: {
-    //       followingPosts: 1,
-    //       _id: 0,
-    //     },
-    //   },
-    // ]);
-
-    // let users = await UserModel.find();
-    // followingPosts = currentUserPosts.concat(followingPosts[0].followingPosts);
-    // let newArray = JSON.parse(JSON.stringify(followingPosts));
-
-    // console.log(followingPosts, "posts are here------------------------");
-    // // console.log(users)
-    // for (let i = 0; i < newArray.length; i++) {
-    //   users.forEach((user) => {
-    //     // console.log(user._id)
-    //     if (user._id.toString() === newArray[i].userId.toString()) {
-    //       console.log(
-    //         "here",
-    //         user._id.toString(),
-    //         newArray[i].userId.toString()
-    //       );
-    //       newArray[i].username = user.username;
-    //       if (user.profilePicture)
-    //         newArray[i].profilePicture = user.profilePicture;
-    //     }
-    //   });
-    // }
-    // let followingPostsDetails = followingPosts.map((post) => {
-
-    //   users.forEach((user) => {
-    //     if (user._id == post.userId) {
-
-    //       post.username = user.username;
-
-    //     }
-    //   });
-
-    //   return {
-
-    //     ...post
-
-    //   }
-    // });
-
-    // let followingPostsDetails = followingPosts.map((post) => {
-    //   users.forEach((user) => {
-    //     if (user._id == post.userId) {
-    //       post.username = user.username;
-    //     }
-    //   });
-    //   return post.toObject({ getters: true });
-    // });
-
-    // console.log("details", newArray);
-    // console.log("details", followingPosts);
-
     const user = await UserModel.findById(userId);
     const followingIds = user.following;
     followingIds.push(userId);
-    console.log(followingIds);
-
-    // const postsWithUserInfo = await PostModel.aggregate([
-    //   {
-    //     $addFields: {
-    //       userId: { $toObjectId: "$userId" },
-    //     },
-    //   },
-    //   {
-    //     $match: {
-    //       userId: {
-    //         $in: followingIds.map((id) => mongoose.Types.ObjectId(id)),
-    //       },
-    //     },
-    //   },
-    //   {
-    //     $lookup: {
-    //       from: "users",
-    //       localField: "userId",
-    //       foreignField: "_id",
-    //       as: "userInfo",
-    //     },
-    //   },
-    //   {
-    //     $unwind: "$userInfo",
-    //   },
-    //   {
-    //     $project: {
-    //       _id: 1,
-    //       desc: 1,
-    //       likes: 1,
-    //       image: 1,
-    //       createdAt: 1,
-    //       "userInfo.username": 1,
-    //       "userInfo.profilePicture": 1,
-    //     },
-    //   },
-    // ]);
-
-    // console.log("posts", postsWithUserInfo);
-    // const timeline = postsWithUserInfo.sort((a, b) => {
-    //   return new Date(b.createdAt) - new Date(a.createdAt);
-    // });
-    // console.log("time", timeline);
 
     const postsWithComments = await PostModel.aggregate([
       {
@@ -273,7 +263,7 @@ export const getTimelinePosts = async (req, res) => {
           desc: 1,
           likes: 1,
           image: 1,
-          isReported:1,
+          status: 1,
           createdAt: 1,
           "userInfo.username": 1,
           "userInfo.profilePicture": 1,
@@ -295,6 +285,7 @@ export const getTimelinePosts = async (req, res) => {
                       0,
                     ],
                   },
+                  { _id: "$$comment._id" },
                 ],
               },
             },
@@ -303,11 +294,12 @@ export const getTimelinePosts = async (req, res) => {
       },
     ]);
 
-    res.status(200).json(
-      postsWithComments.sort((a, b) => {
-        return new Date(b.createdAt) - new Date(a.createdAt);
-      })
-    );
+    const allPosts = postsWithComments.sort((a, b) => {
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+
+   
+    res.status(200).json(allPosts);
   } catch (error) {
     res.status(500).json(error);
     console.log(error);
@@ -319,7 +311,7 @@ export const addComment = async (req, res) => {
   const newComment = new CommentModel(req.body);
   const user = await UserModel.findById(req.body.userId);
   const followingIds = user.following;
-  followingIds.push(req.body.userId)
+  followingIds.push(req.body.userId);
 
   try {
     const comment = await newComment.save();
@@ -372,6 +364,7 @@ export const addComment = async (req, res) => {
           desc: 1,
           likes: 1,
           image: 1,
+          status: 1,
           createdAt: 1,
           "userInfo.username": 1,
           "userInfo.profilePicture": 1,
@@ -393,6 +386,7 @@ export const addComment = async (req, res) => {
                       0,
                     ],
                   },
+                  { _id: "$$comment._id" },
                 ],
               },
             },
@@ -400,29 +394,56 @@ export const addComment = async (req, res) => {
         },
       },
     ]);
-    console.log(postsWithComments)
+    const allPosts = postsWithComments.sort((a, b) => {
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
 
-    res.status(200).json(
-      postsWithComments.sort((a, b) => {
-        return new Date(b.createdAt) - new Date(a.createdAt);
-      })
-    );
+    
+    res.status(200).json(allPosts);
   } catch (error) {
-    console.log(error)
+    console.log(error);
     res.status(500).json(error);
   }
 };
 
 //report post
 export const reportPost = async (req, res) => {
-  console.log("req.body",req.body)
-  const newReport = new ReportModel(req.body);
+  console.log("req.body", req.body);
+  const reportInfo = { userId: req.body.userId, reason: req.body.reason };
 
-  try {
-    // await PostModel.findByIdAndUpdate(req.body.postId,{isReported:true},{new:true})
-    await newReport.save();
-    res.status(200).json("Reported");
-  } catch (error) {
-    res.status(500).json(error);
+  const postExist = await ReportModel.findOne({ postId: req.body.postId });
+  console.log(postExist, "exist");
+  if (!postExist) {
+    const reportData = {
+      postId: req.body.postId,
+      postUserId: req.body.postUserId,
+      reports: [reportInfo],
+    };
+    const newReport = new ReportModel(reportData);
+    try {
+      // await PostModel.findByIdAndUpdate(req.body.postId,{isReported:true},{new:true})
+      await newReport.save();
+      res.status(200).json("Reported");
+    } catch (error) {
+      console.log(error);
+      res.status(500).json(error);
+    }
+  } else {
+    try {
+      const post = await ReportModel.findByIdAndUpdate(
+        postExist._id,
+        {
+          $push: { reports: reportInfo },
+        },
+        { new: true }
+      );
+      if (post.reports.length > 10) {
+        await PostModel.findByIdAndUpdate(req.body.postId, { status: false });
+      }
+      res.status(200).json("Reported");
+    } catch (error) {
+      console.log(error);
+      res.status(500).json(error);
+    }
   }
 };

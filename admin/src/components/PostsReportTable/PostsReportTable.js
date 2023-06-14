@@ -9,6 +9,8 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import { getReportedPosts } from "../../actions/PostActions";
+import * as PostsApi from "../../api/PostsRequests";
+
 import TablePagination from "@mui/material/TablePagination";
 import PostReport from './PostReport.js'
 
@@ -17,9 +19,16 @@ export default function BasicTable() {
   const { posts, loading } = useSelector((state) => state.postReducer);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [reports,setReports]=useState([])
 
   useEffect(() => {
-    dispatch(getReportedPosts());
+    const getAllReportedPosts=async()=>{
+      const { data } = await PostsApi.getReportedPosts();
+      setReports(data)
+    }
+    getAllReportedPosts();
+    // dispatch(getReportedPosts());
+
   }, []);
 
   if (!posts) return "No Posts";
@@ -60,11 +69,11 @@ export default function BasicTable() {
           <TableBody style={{ color: "white" }}>
          
             { (rowsPerPage > 0
-                  ? posts.slice(
+                  ? reports.slice(
                       page * rowsPerPage,
                       page * rowsPerPage + rowsPerPage
                     )
-                  : posts
+                  : reports
                 ).map((post, index) => {
                   return <PostReport data={post} index={page*rowsPerPage+index+1} key={post._id} />;
                 })}
@@ -80,7 +89,7 @@ export default function BasicTable() {
       <TablePagination
         rowsPerPageOptions={[5, 10, 25]}
         component="div"
-        count={posts.length}
+        count={reports.length}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={handleChangePage}

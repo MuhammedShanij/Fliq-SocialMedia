@@ -2,6 +2,11 @@ import jwt from "jsonwebtoken";
 import UserModel from "../models/userModel.js";
 import PostModel from "../models/postModel.js";
 import postsReportModel from "../models/postsReportModel.js";
+import dotenv from "dotenv";
+dotenv.config()
+
+
+
 
 //admin login
 export const loginAdmin = async (req, res) => {
@@ -17,7 +22,7 @@ export const loginAdmin = async (req, res) => {
         const token = jwt.sign(
           { username: username},
           process.env.JWTKEY,
-          { expiresIn: "60s" }
+          { expiresIn: "1h" }
         );
         res.status(200).json({ token });
       }
@@ -46,7 +51,6 @@ export const getAllUsers = async (req, res) => {
 };
 
 export const blockManagement = async (req, res) => {
-  console.log(req.body);
     const userId = req.body._id;
     const blockStatus = req.body.isBlocked;
     try {
@@ -56,8 +60,28 @@ export const blockManagement = async (req, res) => {
       res.status(500).json(error);
     }
 };
-
+// export const reportPost = async (req, res) => {
+//   const postId = req.body._id;
+//   const reportStatus = req.body.isReported;
+//   try {
+//     let post = await PostModel.findByIdAndUpdate(postId,{isReported:!reportStatus},{new:true});        
+//     res.status(200).json(post);
+//   } catch (error) {
+//     res.status(500).json(error);
+//   }
+// };
+export const blockPost = async (req, res) => {
+  const id=req.params.id;
+    try {
+     console.log("hit",req.body,id)
+     await PostModel.findByIdAndUpdate(id,{status:!req.body.status})
+      res.status(200).json("Success");
+    } catch (error) {
+      res.status(500).json(error);
+    }
+  };
 export const getAllPosts = async (req, res) => {
+
   try {
     const posts = await PostModel.aggregate([
       {
@@ -84,18 +108,19 @@ export const getAllPosts = async (req, res) => {
           likes: 1,
           image: 1,
           createdAt: 1,
-          // isReported:1,
+          status:1,
           "userInfo.username": 1,
           "userInfo.profilePicture": 1,
         },
       },
     ]);
-    console.log("posts",posts)
-    res.status(200).json(
-      posts.sort((a, b) => {
-        return new Date(b.createdAt) - new Date(a.createdAt);
-      })
-    );
+    const allPosts= posts.sort((a, b) => {
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    })
+
+   
+    console.log(allPosts)
+    res.status(200).json(allPosts);
   } catch (error) {
     res.status(500).json(error);
     console.log(error);
@@ -104,60 +129,127 @@ export const getAllPosts = async (req, res) => {
 
 export const getAllReportedPost = async (req, res) => {
   try {
-    const reportedPosts = await postsReportModel.aggregate([
-      {
-        $addFields: {
-          userId: { $toObjectId: "$userId" },
-          postId: { $toObjectId: "$postId" },
-          postUserId: { $toObjectId: "$postUserId" },
-        },
-      },
-      {
-        $lookup: {
-          from: "users",
-          localField: "userId",
-          foreignField: "_id",
-          as: "userInfo",
-        },
-      },
-      {
-        $unwind: "$userInfo",
-      },
+    const reportedPosts=await postsReportModel.aggregate([
       {
         $lookup: {
           from: "posts",
           localField: "postId",
           foreignField: "_id",
-          as: "postInfo",
+          as: "post",
         },
       },
       {
-        $unwind: "$postInfo",
+        $unwind: "$post",
       },
       {
         $lookup: {
           from: "users",
           localField: "postUserId",
           foreignField: "_id",
-          as: "postUserInfo",
+          as: "user",
         },
       },
       {
-        $unwind: "$postUserInfo",
+        $unwind: "$user",
+      },
+      {
+        $lookup: {
+          from: "users",
+          let: { userIds: "$reports.userId" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $in: ["$_id", "$$userIds"],
+                },
+              },
+            },
+          ],
+          as: "reportUsers",
+        },
       },
       {
         $project: {
-          _id: 1,
-          userId: 1,
-          postId:1,
-          reason:1,
-          createdAt:1,
-          "userInfo":1,
-          "postInfo":1,
-          "postUserInfo":1
+          
+          post: 1,
+          user: 1,
+          reports: {
+            $map: {
+              input: "$reports",
+              as: "report",
+              in: {
+                $mergeObjects: [
+                  "$$report",
+                  {
+                    user: {
+                      $arrayElemAt: [
+                        "$reportUsers",
+                        { $indexOfArray: ["$reportUsers._id", "$$report.userId"] },
+                      ],
+                    },
+                  },
+                ],
+              },
+            },
+          },
         },
       },
-    ]);
+    ]).exec();
+
+    // const reportedPosts = await postsReportModel.aggregate([
+    //   {
+    //     $addFields: {
+    //       userId: { $toObjectId: "$userId" },
+    //       postId: { $toObjectId: "$postId" },
+    //       postUserId: { $toObjectId: "$postUserId" },
+    //     },
+    //   },
+    //   {
+    //     $lookup: {
+    //       from: "users",
+    //       localField: "userId",
+    //       foreignField: "_id",
+    //       as: "userInfo",
+    //     },
+    //   },
+    //   {
+    //     $unwind: "$userInfo",
+    //   },
+    //   {
+    //     $lookup: {
+    //       from: "posts",
+    //       localField: "postId",
+    //       foreignField: "_id",
+    //       as: "postInfo",
+    //     },
+    //   },
+    //   {
+    //     $unwind: "$postInfo",
+    //   },
+    //   {
+    //     $lookup: {
+    //       from: "users",
+    //       localField: "postUserId",
+    //       foreignField: "_id",
+    //       as: "postUserInfo",
+    //     },
+    //   },
+    //   {
+    //     $unwind: "$postUserInfo",
+    //   },
+    //   {
+    //     $project: {
+    //       _id: 1,
+    //       userId: 1,
+    //       postId:1,
+    //       reason:1,
+    //       createdAt:1,
+    //       "userInfo":1,
+    //       "postInfo":1,
+    //       "postUserInfo":1
+    //     },
+    //   },
+    // ]);
     console.log("data",reportedPosts)
     res.status(200).json(
       reportedPosts.sort((a, b) => {
@@ -169,5 +261,3 @@ export const getAllReportedPost = async (req, res) => {
     console.log(error);
   }
 };
-
-

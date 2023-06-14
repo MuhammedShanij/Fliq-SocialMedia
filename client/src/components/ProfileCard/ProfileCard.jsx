@@ -4,26 +4,36 @@ import Cover from "../../img/cover.jpg";
 import Profile from "../../img/profileImg.jpg";
 import { Link, useParams } from "react-router-dom";
 import * as UserApi from "../../api/UserRequests.js";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { followUser, unfollowUser } from "../../actions/UserAction";
+
 const ProfileCard = ({ location }) => {
   let { user } = useSelector((state) => state.authReducer.authData);
   const posts = useSelector((state) => state.postReducer.posts);
   const serverPublic = process.env.REACT_APP_PUBLIC_FOLDER;
   const [profileUser, setProfileUser] = useState(user);
+  const [following, setFollowing] = useState(false);
   const params = useParams();
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    
     const fetchProfileUser = async () => {
       console.log("fetching");
       const profile = await UserApi.getUser(params.id);
       setProfileUser(profile.data);
+      setFollowing(profile.data.followers.includes(user._id));
     };
     if (params.id && params.id !== user._id) {
       fetchProfileUser();
     }
-  }, [user,params]);
-      console.log(profileUser, "userrr");
+  }, [user, params]);
+
+  const handleFollow = () => {
+    following
+      ? dispatch(unfollowUser(profileUser._id, user))
+      : dispatch(followUser(profileUser._id, user));
+    setFollowing((prev) => !prev);
+  };
 
   return (
     <div className="ProfileCard">
@@ -31,7 +41,7 @@ const ProfileCard = ({ location }) => {
         <img
           src={
             profileUser.coverPicture
-              ? serverPublic + profileUser.coverPicture
+              ? profileUser.coverPicture
               : serverPublic + "defaultCoverr.jpg"
           }
           alt="CoverImage"
@@ -39,7 +49,7 @@ const ProfileCard = ({ location }) => {
         <img
           src={
             profileUser.profilePicture
-              ? serverPublic + profileUser.profilePicture
+              ? profileUser.profilePicture
               : serverPublic + "defaultProfilee.png"
           }
           alt="ProfileImage"
@@ -49,7 +59,26 @@ const ProfileCard = ({ location }) => {
         <span>
           {profileUser.firstname} {profileUser.lastname}
         </span>
-        <span>{profileUser.worksAt ? profileUser.worksAt : "Write about yourself"}</span>
+        <span>
+          {profileUser.worksAt
+            ? profileUser.worksAt
+            : user._id === params.id
+            ? "Write about yourself"
+            : " "}
+        </span>
+
+        {user._id !== params.id && location === "profilePage" ? (
+          <button
+            className={
+              following ? "button fc-button UnfollowButton" : "button fc-button"
+            }
+            onClick={handleFollow}
+          >
+            {following ? "Unfollow" : "Follow"}
+          </button>
+        ) : (
+          ""
+        )}
       </div>
 
       <div className="followStatus">
@@ -61,7 +90,16 @@ const ProfileCard = ({ location }) => {
           </div>
           <div className="vl"></div>
           <div className="follow">
-            <span>{profileUser.following.length}</span>
+            {location === "homepage" && (
+              <>
+                <span>{user.following.length}</span>
+              </>
+            )}
+            {location === "profilePage" && (
+              <>
+                <span>{profileUser.following.length}</span>
+              </>
+            )}
             <span>Following</span>
           </div>
           {/* for profilepage */}
@@ -70,7 +108,10 @@ const ProfileCard = ({ location }) => {
               <div className="vl"></div>
               <div className="follow">
                 <span>
-                  {posts.filter((post) => post.userId === profileUser._id).length}
+                  {
+                    posts.filter((post) => post.userId === profileUser._id)
+                      .length
+                  }
                 </span>
                 <span>Posts</span>
               </div>{" "}

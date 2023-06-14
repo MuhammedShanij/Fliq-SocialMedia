@@ -46,6 +46,8 @@ const postReducer = (
       }
       
       return { ...state, posts: array, error: false };
+    case "DELETING_COMMENT":
+      return { ...state, posts: action.data, loading: false, error: false };
     case "DELETE_FAIL":
       return { ...state, error: true };
     default:

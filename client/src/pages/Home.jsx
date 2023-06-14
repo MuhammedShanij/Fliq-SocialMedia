@@ -7,7 +7,7 @@ const Home = () => {
   return (
     <div className="Home">
       <ProfileSide/>
-      <PostSide />
+      <PostSide flag={true}/>
       <RightSide />
     </div>
   );

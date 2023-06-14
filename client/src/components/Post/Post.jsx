@@ -27,6 +27,7 @@ const Post = ({ data }) => {
   const [likes, setLikes] = useState(data.likes.length);
   const desc = useRef();
 
+
   const handleLike = () => {
     likePost(data._id, user._id);
     setLiked((prev) => !prev);
@@ -103,7 +104,7 @@ const Post = ({ data }) => {
           <img
             src={
               data.userInfo.profilePicture
-                ? publicFolder + data.userInfo.profilePicture
+                ?  data.userInfo.profilePicture
                 : publicFolder + "defaultProfilee.png"
             }
             alt="profile"
@@ -129,7 +130,7 @@ const Post = ({ data }) => {
     
 
       <img
-        src={data.image ? process.env.REACT_APP_PUBLIC_FOLDER + data.image : ""}
+        src={data.image ? data.image : ""}
         alt=""
       />
        {!data.image && <span style={{fontWeight:"bold"}}>

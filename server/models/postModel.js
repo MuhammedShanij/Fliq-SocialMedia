@@ -5,10 +5,7 @@ const postSchema = mongoose.Schema(
     userId: { type: String, required: true },
     desc: {type: String, required : true},
     likes: [],
-    // isReported:{
-    //   type:Boolean,
-    //   default:false
-    // },
+    status:{type:Boolean,default:true},
     image: String,
   },
   {

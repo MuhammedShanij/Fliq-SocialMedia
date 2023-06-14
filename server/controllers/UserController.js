@@ -2,6 +2,11 @@ import UserModel from "../models/userModel.js";
 
 import bcrypt from "bcrypt";
 import jwt from 'jsonwebtoken'
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
+import dotenv from "dotenv";
+
+
 // Get a User
 export const getUser = async (req, res) => {
   const id = req.params.id;
@@ -68,6 +73,7 @@ export const updateUser = async (req, res) => {
       const user = await UserModel.findByIdAndUpdate(id, req.body, {
         new: true,
       });
+    
       const token = jwt.sign(
         { username: user.username, id: user._id },
         process.env.JWTKEY,
@@ -76,7 +82,7 @@ export const updateUser = async (req, res) => {
       console.log({user, token})
       res.status(200).json({user, token});
     } catch (error) {
-      console.log("Error agya hy")
+      console.log("Error agya hy",error)
       res.status(500).json(error);
     }
   } else {
