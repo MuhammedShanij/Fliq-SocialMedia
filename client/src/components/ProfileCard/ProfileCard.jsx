@@ -6,6 +6,8 @@ import { Link, useParams } from "react-router-dom";
 import * as UserApi from "../../api/UserRequests.js";
 import { useSelector, useDispatch } from "react-redux";
 import { followUser, unfollowUser } from "../../actions/UserAction";
+import { getFollowers,getFollowing } from "../../api/UserRequests";
+import Followers from "../Followers/Followers";
 
 const ProfileCard = ({ location }) => {
   let { user } = useSelector((state) => state.authReducer.authData);
@@ -15,6 +17,9 @@ const ProfileCard = ({ location }) => {
   const [following, setFollowing] = useState(false);
   const params = useParams();
   const dispatch = useDispatch();
+  const [modalOpened, setModalOpened] = useState(false);
+  const [persons, setPersons] = useState([]);
+  
 
   useEffect(() => {
     const fetchProfileUser = async () => {
@@ -34,6 +39,18 @@ const ProfileCard = ({ location }) => {
       : dispatch(followUser(profileUser._id, user));
     setFollowing((prev) => !prev);
   };
+  const handleFollowersList =async () => {
+  const followers=await getFollowers(profileUser._id)
+  setPersons(followers.data)
+  setModalOpened(true)
+  };
+  const handleFollowingList =async () => {
+    const following=await getFollowing(profileUser._id)
+  setPersons(following.data)
+  setModalOpened(true)
+
+
+    };
 
   return (
     <div className="ProfileCard">
@@ -85,21 +102,22 @@ const ProfileCard = ({ location }) => {
         <hr />
         <div>
           <div className="follow">
-            <span>{profileUser.followers.length}</span>
+            <span onClick={handleFollowersList}>{profileUser.followers.length}</span>
             <span>Followers</span>
           </div>
           <div className="vl"></div>
           <div className="follow">
             {location === "homepage" && (
               <>
-                <span>{user.following.length}</span>
+                <span onClick={handleFollowingList}>{user.following.length}</span>
               </>
             )}
             {location === "profilePage" && (
               <>
-                <span>{profileUser.following.length}</span>
+                <span onClick={handleFollowingList}>{profileUser.following.length}</span>
               </>
             )}
+            
             <span>Following</span>
           </div>
           {/* for profilepage */}
@@ -133,6 +151,8 @@ const ProfileCard = ({ location }) => {
           </Link>
         </span>
       )}
+      <Followers  modalOpened={modalOpened}
+        setModalOpened={setModalOpened} persons={persons}/>
     </div>
   );
 };

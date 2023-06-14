@@ -1,11 +1,11 @@
 import UserModel from "../models/userModel.js";
+import mongoose from "mongoose";
 
 import bcrypt from "bcrypt";
-import jwt from 'jsonwebtoken'
+import jwt from "jsonwebtoken";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import dotenv from "dotenv";
-
 
 // Get a User
 export const getUser = async (req, res) => {
@@ -27,13 +27,12 @@ export const getUser = async (req, res) => {
 
 // Get all users
 export const getAllUsers = async (req, res) => {
-
   try {
     let users = await UserModel.find();
-    users = users.map((user)=>{
-      const {password, ...otherDetails} = user._doc
-      return otherDetails
-    })
+    users = users.map((user) => {
+      const { password, ...otherDetails } = user._doc;
+      return otherDetails;
+    });
     res.status(200).json(users);
   } catch (error) {
     res.status(500).json(error);
@@ -42,7 +41,7 @@ export const getAllUsers = async (req, res) => {
 
 // Get all users dynamically
 
-export const getAllUsersDynamically=async (req, res) => {
+export const getAllUsersDynamically = async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
 
@@ -51,9 +50,9 @@ export const getAllUsersDynamically=async (req, res) => {
     const users = await UserModel.find().skip(skip).limit(limit);
     res.json(users);
   } catch (error) {
-    res.status(500).json({ error: 'An error occurred while fetching users.' });
+    res.status(500).json({ error: "An error occurred while fetching users." });
   }
-}
+};
 
 // udpate a user
 
@@ -61,7 +60,7 @@ export const updateUser = async (req, res) => {
   const id = req.params.id;
   // console.log("Data Received", req.body)
   const { _id, currentUserAdmin, password } = req.body;
-  
+
   if (id === _id) {
     try {
       // if we also have to update password then password will be bcrypted again
@@ -73,16 +72,16 @@ export const updateUser = async (req, res) => {
       const user = await UserModel.findByIdAndUpdate(id, req.body, {
         new: true,
       });
-    
+
       const token = jwt.sign(
         { username: user.username, id: user._id },
         process.env.JWTKEY,
         { expiresIn: "1h" }
       );
-      console.log({user, token})
-      res.status(200).json({user, token});
+      console.log({ user, token });
+      res.status(200).json({ user, token });
     } catch (error) {
-      console.log("Error agya hy",error)
+      console.log("Error agya hy", error);
       res.status(500).json(error);
     }
   } else {
@@ -115,7 +114,7 @@ export const deleteUser = async (req, res) => {
 export const followUser = async (req, res) => {
   const id = req.params.id;
   const { _id } = req.body;
-  console.log(id, _id)
+  console.log(id, _id);
   if (_id == id) {
     res.status(403).json("Action Forbidden");
   } else {
@@ -131,7 +130,7 @@ export const followUser = async (req, res) => {
         res.status(403).json("you are already following this id");
       }
     } catch (error) {
-      console.log(error)
+      console.log(error);
       res.status(500).json(error);
     }
   }
@@ -143,27 +142,61 @@ export const unfollowUser = async (req, res) => {
   const id = req.params.id;
   const { _id } = req.body;
 
-  if(_id === id)
-  {
-    res.status(403).json("Action Forbidden")
-  }
-  else{
+  if (_id === id) {
+    res.status(403).json("Action Forbidden");
+  } else {
     try {
-      const unFollowUser = await UserModel.findById(id)
-      const unFollowingUser = await UserModel.findById(_id)
+      const unFollowUser = await UserModel.findById(id);
+      const unFollowingUser = await UserModel.findById(_id);
 
-
-      if (unFollowUser.followers.includes(_id))
-      {
-        await unFollowUser.updateOne({$pull : {followers: _id}})
-        await unFollowingUser.updateOne({$pull : {following: id}})
-        res.status(200).json("Unfollowed Successfully!")
-      }
-      else{
-        res.status(403).json("You are not following this User")
+      if (unFollowUser.followers.includes(_id)) {
+        await unFollowUser.updateOne({ $pull: { followers: _id } });
+        await unFollowingUser.updateOne({ $pull: { following: id } });
+        res.status(200).json("Unfollowed Successfully!");
+      } else {
+        res.status(403).json("You are not following this User");
       }
     } catch (error) {
-      res.status(500).json(error)
+      res.status(500).json(error);
     }
+  }
+};
+
+export const followersList = async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    const user = await UserModel.findById(id);
+
+    const followerObjectIds = user.followers.map((id) =>
+      mongoose.Types.ObjectId(id)
+    );
+
+    const followersData = await UserModel.aggregate([
+      { $match: { _id: { $in: followerObjectIds } } },
+    ]);
+
+    res.status(200).json(followersData);
+  } catch (error) {
+    res.status(500).json(error);
+  }
+};
+export const followingList = async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    const user = await UserModel.findById(id);
+
+    const followingObjectIds = user.following.map((id) =>
+      mongoose.Types.ObjectId(id)
+    );
+
+    const followingData = await UserModel.aggregate([
+      { $match: { _id: { $in: followingObjectIds } } },
+    ]);
+
+    res.status(200).json(followingData);
+  } catch (error) {
+    res.status(500).json(error);
   }
 };

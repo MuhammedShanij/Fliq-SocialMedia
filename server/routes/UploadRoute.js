@@ -50,7 +50,8 @@ router.post("/", upload.single("file"), async(req, res) => {
         Key: req.body.name,
       };
       const command = new GetObjectCommand(getObjectParams);
-      const url = await getSignedUrl(s3, command, { expiresIn: 7200 });
+      
+      const url = await getSignedUrl(s3, command,{expiresIn:604800});
 
       return res.status(200).json(url);
     } catch (error) {

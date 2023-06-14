@@ -18,7 +18,11 @@ const FollowersCard = ({ location }) => {
   }, []);
  
   return (
-    <div className="FollowersCard">
+    <div
+    className="FollowersCard"
+    style={{ maxHeight: "80vh", overflow: "auto" }}
+  >
+      
       <h3>People you may know</h3>
 
       {persons.map((person, id) => {

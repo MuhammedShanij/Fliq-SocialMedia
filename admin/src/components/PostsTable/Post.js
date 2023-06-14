@@ -35,7 +35,7 @@ const Post = ({data,index}) => {
       <img
             src={
               data.image
-                ? publicFolder + data.image
+                ? data.image
                 : publicFolder + "defaultProfilee.png"
             }
             alt="post"
